@@ -23,7 +23,9 @@ const useApiCallHooks = () => {
 
       // Get the decrypted auth token
       const { token } = await getDecryptedAuthData();
-     
+      console.log(token);
+
+
       const config = {
         headers: {
           "Content-Type": "application/json",

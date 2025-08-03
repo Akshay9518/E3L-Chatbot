@@ -47,17 +47,34 @@ const ChatPage = () => {
 
   const stableInitialMessages = useMemo(() => initialMessages, [location.state]);
 
-  const buildPayload = (messageText) => ({
-    message: messageText,
-    session_id: sessionId,
-    userId: userId,
-    history: messages.map(msg => ({
-      role: msg.sender === 'user' ? 'user' : role,
-      content: msg.text,
-      tasks: msg.tasks || [],
-      resources: msg.resources || [],
-    })),
-  });
+  const buildPayload = (messageText) => {
+    // Build full history
+    const history = messages.reduce((acc, msg, index, arr) => {
+      if (msg.sender === "user") {
+        const nextBot = arr[index + 1]?.sender === "bot" ? arr[index + 1].text : "";
+        acc.push({
+          user_message: msg.text,
+          bot_message: nextBot,
+        });
+      }
+      return acc;
+    }, []);
+
+    // Keep only the latest 8 entries
+    const latestHistory = history.slice(-8);
+
+    return {
+      message: messageText,
+      session_id: sessionId,
+      userId: userId,
+      full_history: latestHistory,
+    };
+  };
+
+
+
+  console.log(response);
+
 
   const safeCallAPI = async (method, url, payload) => {
     setRequestType(method);
@@ -329,7 +346,7 @@ const ChatPage = () => {
               />
               <div className="flex justify-between items-center px-2 py-3">
                 <div className='flex gap-2'>
-                   <VoiceInput onTranscript={handleVoiceTranscript} isDisabled={loading} />
+                  <VoiceInput onTranscript={handleVoiceTranscript} isDisabled={loading} />
                   {/* <button className='px-2 bg-white text-black  flex gap-1 items-center py-0.5 sm:px-3 sm:py-1 md:px-4 md:py-1.5  cursor-pointer rounded-lg text-md sm:text-md md:text-sm transition-all duration-300 border-2'>
                     <FiList className="text-black w-4 h-4" /> Task
                   </button>
